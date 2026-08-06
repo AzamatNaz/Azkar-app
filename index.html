@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Азкор — ёдоварӣ</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:wght@500;600;700&family=Noto+Naskh+Arabic:wght@500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E2B26;
+    --ink-2:#143B34;
+    --ink-3:#1B4A40;
+    --paper:#F6EFDD;
+    --paper-2:#EFE4C8;
+    --gold:#C9A24B;
+    --gold-soft:#E7CE8C;
+    --sage:#6FA98D;
+    --ink-text:#20281F;
+    --cream:#F4EFE0;
+    --muted:#9FB8AE;
+    --danger:#B45A4A;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:
+      radial-gradient(circle at 15% -10%, #1c5148 0%, transparent 45%),
+      radial-gradient(circle at 110% 10%, #0a201c 0%, transparent 40%),
+      var(--ink);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    overscroll-behavior:none;
+    padding-bottom:84px;
+  }
+  .app{max-width:480px;margin:0 auto;position:relative;}
+
+  /* ---------- Header ---------- */
+  header.top{
+    padding:28px 20px 18px;
+    position:relative;
+  }
+  .eyebrow{
+    font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--gold-soft); font-weight:600; opacity:.85;
+  }
+  h1.brand{
+    font-family:'Noto Serif',serif; font-weight:700; font-size:30px;
+    margin:6px 0 2px; letter-spacing:.01em;
+  }
+  .brand-sub{ color:var(--muted); font-size:13.5px; }
+  .hijri-row{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-top:18px; padding-top:14px; border-top:1px solid rgba(244,239,224,.12);
+  }
+  .greet{font-size:14.5px; color:var(--cream); font-weight:500;}
+  .date{font-size:12px; color:var(--muted); margin-top:2px;}
+
+  /* ---------- Prayer card ---------- */
+  .prayer-card{
+    margin:0 16px 18px; background:linear-gradient(155deg,var(--ink-3),var(--ink-2));
+    border-radius:20px; padding:18px 18px 14px; border:1px solid rgba(201,162,75,.25);
+    position:relative; overflow:hidden;
+  }
+  .prayer-card::after{
+    content:""; position:absolute; inset:0;
+    background:radial-gradient(circle at 100% 0%, rgba(201,162,75,.18), transparent 60%);
+    pointer-events:none;
+  }
+  .prayer-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+  .prayer-title{font-family:'Noto Serif',serif; font-size:16px; font-weight:600; color:var(--gold-soft);}
+  select#citySelect{
+    background:rgba(244,239,224,.08); color:var(--cream); border:1px solid rgba(244,239,224,.2);
+    border-radius:10px; font-size:12.5px; padding:6px 10px; font-family:'Inter',sans-serif;
+  }
+  .prayer-grid{display:flex; justify-content:space-between; gap:6px;}
+  .prayer-item{flex:1; text-align:center; padding:8px 2px; border-radius:12px;}
+  .prayer-item.active{background:rgba(201,162,75,.18);}
+  .prayer-name{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em;}
+  .prayer-time{font-size:14.5px; font-weight:700; margin-top:3px; font-variant-numeric:tabular-nums;}
+  .prayer-status{font-size:11px; color:var(--muted); margin-top:10px; text-align:center;}
+
+  /* ---------- Category cards ---------- */
+  .section-label{
+    padding:0 20px; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--muted); font-weight:600; margin:22px 0 10px;
+  }
+  .cards{padding:0 16px; display:grid; gap:12px;}
+  .cat-card{
+    background:var(--paper); color:var(--ink-text); border-radius:18px; padding:16px 18px;
+    display:flex; align-items:center; gap:14px; cursor:pointer; border:1px solid rgba(0,0,0,.03);
+    transition:transform .15s ease;
+  }
+  .cat-card:active{transform:scale(.98);}
+  .cat-icon{
+    width:46px;height:46px;border-radius:13px; display:flex; align-items:center; justify-content:center;
+    font-size:22px; flex-shrink:0;
+  }
+  .cat-1 .cat-icon{background:#FDEFD9;}
+  .cat-2 .cat-icon{background:#E4EEE9;}
+  .cat-3 .cat-icon{background:#E9E3F3;}
+  .cat-4 .cat-icon{background:#F4E3DD;}
+  .cat-name{font-family:'Noto Serif',serif; font-weight:600; font-size:16.5px;}
+  .cat-count{font-size:12.5px; color:#6b6455; margin-top:2px;}
+  .cat-arrow{margin-left:auto; color:#b8ad93; font-size:18px;}
+
+  /* ---------- Detail view ---------- */
+  .detail{
+    position:fixed; inset:0; background:var(--ink); transform:translateX(100%);
+    transition:transform .28s cubic-bezier(.4,0,.2,1); overflow-y:auto; z-index:20;
+    padding-bottom:40px;
+  }
+  .detail.open{transform:translateX(0);}
+  .detail-head{
+    padding:18px 16px 14px; display:flex; align-items:center; gap:12px;
+    position:sticky; top:0; background:var(--ink); z-index:5; border-bottom:1px solid rgba(244,239,224,.08);
+  }
+  .back-btn{
+    width:38px;height:38px;border-radius:12px; background:rgba(244,239,224,.08);
+    display:flex; align-items:center; justify-content:center; font-size:18px; border:none; color:var(--cream);
+  }
+  .detail-title{font-family:'Noto Serif',serif; font-size:19px; font-weight:700;}
+  .detail-sub{font-size:12px; color:var(--muted);}
+
+  .zikr-list{padding:16px;}
+  .zikr-card{
+    background:var(--paper); color:var(--ink-text); border-radius:18px; padding:18px;
+    margin-bottom:14px;
+  }
+  .zikr-index{
+    font-size:11px; font-weight:700; color:var(--gold); letter-spacing:.08em;
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;
+  }
+  .zikr-arabic{
+    font-family:'Noto Naskh Arabic',serif; direction:rtl; font-size:22px; line-height:2;
+    margin-bottom:10px; color:#241f14;
+  }
+  .zikr-translit{font-size:13px; color:#7c7460; font-style:italic; margin-bottom:8px; line-height:1.5;}
+  .zikr-tj{font-size:14.5px; line-height:1.55; color:#2d2718;}
+  .zikr-footer{
+    margin-top:14px; display:flex; align-items:center; justify-content:space-between;
+    border-top:1px dashed #ddd0aa; padding-top:12px;
+  }
+  .zikr-repeat{font-size:12.5px; color:#8a7f5f; font-weight:600;}
+  .count-btn{
+    display:flex; align-items:center; gap:10px; background:var(--ink); color:var(--cream);
+    border:none; border-radius:14px; padding:9px 16px; font-family:'Inter',sans-serif;
+    font-weight:600; font-size:14px;
+  }
+  .count-num{
+    background:var(--gold); color:#231a08; min-width:26px; height:26px; border-radius:8px;
+    display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700;
+  }
+  .zikr-card.done{box-shadow:inset 0 0 0 2px var(--sage);}
+
+  /* ---------- Bottom nav ---------- */
+  .bottom-nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:30;
+    display:flex; justify-content:center;
+  }
+  .nav-inner{
+    max-width:480px; width:100%; margin:0 14px 14px; background:rgba(20,44,38,.92);
+    backdrop-filter:blur(14px); border-radius:20px; display:flex;
+    border:1px solid rgba(244,239,224,.1); box-shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+  .nav-btn{
+    flex:1; padding:13px 0 10px; display:flex; flex-direction:column; align-items:center; gap:4px;
+    background:none; border:none; color:var(--muted); font-family:'Inter',sans-serif; font-size:11px; font-weight:600;
+  }
+  .nav-btn.active{color:var(--gold-soft);}
+  .nav-icon{font-size:19px;}
+
+  /* ---------- Tasbih view ---------- */
+  .tasbih-wrap{
+    display:flex; flex-direction:column; align-items:center; padding:30px 20px 10px;
+  }
+  .dhikr-select{
+    display:flex; gap:8px; overflow-x:auto; width:100%; padding-bottom:6px; margin-bottom:26px;
+  }
+  .dhikr-chip{
+    flex-shrink:0; background:rgba(244,239,224,.08); border:1px solid rgba(244,239,224,.15);
+    color:var(--cream); border-radius:999px; padding:8px 15px; font-size:13px; font-family:'Inter',sans-serif;
+    white-space:nowrap;
+  }
+  .dhikr-chip.active{background:var(--gold); color:#231a08; border-color:var(--gold); font-weight:700;}
+
+  .tasbih-circle{
+    width:230px; height:230px; border-radius:50%;
+    background:radial-gradient(circle at 32% 28%, var(--ink-3), var(--ink) 70%);
+    border:1px solid rgba(201,162,75,.35);
+    display:flex; align-items:center; justify-content:center; flex-direction:column;
+    box-shadow:0 0 0 10px rgba(244,239,224,.03), inset 0 0 40px rgba(0,0,0,.4);
+    user-select:none;
+  }
+  .tasbih-arabic{font-family:'Noto Naskh Arabic',serif; font-size:26px; color:var(--gold-soft); direction:rtl;}
+  .tasbih-num{font-size:52px; font-weight:700; font-family:'Noto Serif',serif; margin-top:6px; font-variant-numeric:tabular-nums;}
+  .tasbih-target{font-size:12.5px; color:var(--muted); margin-top:4px;}
+
+  .beads-row{display:flex; gap:6px; margin-top:26px; flex-wrap:wrap; justify-content:center; max-width:280px;}
+  .bead{width:9px; height:9px; border-radius:50%; background:rgba(244,239,224,.15);}
+  .bead.lit{background:var(--gold);}
+
+  .tasbih-actions{display:flex; gap:12px; margin-top:28px;}
+  .ghost-btn{
+    background:rgba(244,239,224,.08); color:var(--cream); border:1px solid rgba(244,239,224,.18);
+    border-radius:14px; padding:11px 22px; font-size:13.5px; font-weight:600; font-family:'Inter',sans-serif;
+  }
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="eyebrow">Азкор</div>
+    <h1 class="brand">Азкор — ёдоварӣ</h1>
+    <div class="brand-sub">Зикру дуоҳои субҳ, бегоҳ, пеш аз хоб ва баъд аз намоз</div>
+    <div class="hijri-row">
+      <div>
+        <div class="greet" id="greetText">Ассалому алайкум!</div>
+        <div class="date" id="dateText">—</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="prayer-card">
+    <div class="prayer-top">
+      <div class="prayer-title">Вақти намоз</div>
+      <select id="citySelect">
+        <option value="Dushanbe">Душанбе</option>
+        <option value="Khujand">Хуҷанд</option>
+        <option value="Bokhtar">Бохтар</option>
+        <option value="Kulob">Кӯлоб</option>
+        <option value="Khorog">Хоруғ</option>
+      </select>
+    </div>
+    <div class="prayer-grid" id="prayerGrid">
+      <div class="prayer-item"><div class="prayer-name">Бомдод</div><div class="prayer-time">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">Пешин</div><div class="prayer-time">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">Аср</div><div class="prayer-time">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">Шом</div><div class="prayer-time">--:--</div></div>
+      <div class="prayer-item"><div class="prayer-name">Хуфтан</div><div class="prayer-time">--:--</div></div>
+    </div>
+    <div class="prayer-status" id="prayerStatus">Дар ҳоли боргирӣ...</div>
+  </div>
+
+  <div class="section-label">Азкор аз рӯи вақт</div>
+  <div class="cards" id="homeView">
+    <div class="cat-card cat-1" data-cat="subh">
+      <div class="cat-icon">☀️</div>
+      <div><div class="cat-name">Азкори субҳ</div><div class="cat-count" id="cnt-subh">— зикр</div></div>
+      <div class="cat-arrow">›</div>
+    </div>
+    <div class="cat-card cat-2" data-cat="begoh">
+      <div class="cat-icon">🌇</div>
+      <div><div class="cat-name">Азкори бегоҳ</div><div class="cat-count" id="cnt-begoh">— зикр</div></div>
+      <div class="cat-arrow">›</div>
+    </div>
+    <div class="cat-card cat-3" data-cat="khob">
+      <div class="cat-icon">🌙</div>
+      <div><div class="cat-name">Пеш аз хоб</div><div class="cat-count" id="cnt-khob">— зикр</div></div>
+      <div class="cat-arrow">›</div>
+    </div>
+    <div class="cat-card cat-4" data-cat="namoz">
+      <div class="cat-icon">🕌</div>
+      <div><div class="cat-name">Баъд аз намоз</div><div class="cat-count" id="cnt-namoz">— зикр</div></div>
+      <div class="cat-arrow">›</div>
+    </div>
+  </div>
+
+  <!-- ===== Detail (zikr list) ===== -->
+  <div class="detail" id="detailView">
+    <div class="detail-head">
+      <button class="back-btn" onclick="closeDetail()">←</button>
+      <div>
+        <div class="detail-title" id="detailTitle">—</div>
+        <div class="detail-sub" id="detailSub">—</div>
+      </div>
+    </div>
+    <div class="zikr-list" id="zikrList"></div>
+  </div>
+
+  <!-- ===== Tasbih view ===== -->
+  <div id="tasbihView" class="hidden">
+    <div class="tasbih-wrap">
+      <div class="dhikr-select" id="dhikrSelect"></div>
+      <div class="tasbih-circle" id="tasbihCircle">
+        <div class="tasbih-arabic" id="tasbihArabic">سُبْحَانَ اللَّهِ</div>
+        <div class="tasbih-num" id="tasbihNum">0</div>
+        <div class="tasbih-target">аз 33</div>
+      </div>
+      <div class="beads-row" id="beadsRow"></div>
+      <div class="tasbih-actions">
+        <button class="ghost-btn" onclick="resetTasbih()">Аз нав</button>
+        <button class="ghost-btn" onclick="undoTasbih()">Бозгашт</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-inner">
+      <button class="nav-btn active" id="navHome" onclick="showTab('home')">
+        <span class="nav-icon">🏠</span>Хона
+      </button>
+      <button class="nav-btn" id="navTasbih" onclick="showTab('tasbih')">
+        <span class="nav-icon">📿</span>Тасбеҳ
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+if (tg) { tg.ready(); tg.expand(); }
+
+/* ============ ДАДАИ АЗКОР (матн бо забони тоҷикӣ) ============ */
+const DATA = {
+  subh: {
+    title: "Азкори субҳ",
+    sub: "Баъд аз намози бомдод хонда мешавад",
+    items: [
+      {
+        ar: "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ",
+        tr: "Асбаҳна ва асбаҳал-мулку лиллаҳ, вал-ҳамду лиллаҳ",
+        tj: "Мо ба субҳ расидем ва подшоҳии тамоми олам аз они Худост, ва ҳама гуна ситоиш низ ба Ӯ хос аст.",
+        n: 1
+      },
+      {
+        ar: "اللَّهُمَّ بِكَ أَصْبَحْنَا، وَبِكَ أَمْسَيْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ وَإِلَيْكَ النُّشُورُ",
+        tr: "Аллоҳумма бика асбаҳна, ва бика амсайна, ва бика наҳё, ва бика намуту ва илайкан-нушур",
+        tj: "Худовандо, бо мадади Ту ба субҳ расидем ва бо мадади Ту ба шом мерасем, бо иродаи Ту зиндагӣ мекунем ва бо иродаи Ту мемирем, ва бозгашти мо низ сӯи Туст.",
+        n: 1
+      },
+      {
+        ar: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَٰهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ",
+        tr: "Аллоҳумма анта раббӣ, ла илаҳа илла анта, халақтани ва ана абдука",
+        tj: "Худовандо, Ту Парвардигори ман ҳастӣ, ғайр аз Ту худое нест, Ту маро офаридаӣ ва ман бандаи Ту ҳастам (дуои Сайид-ул-истиғфор).",
+        n: 1
+      },
+      {
+        ar: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ",
+        tr: "Бисмиллаҳиллазӣ ла ядурру маа исмиҳи шайъун фил-арди ва ла фис-само",
+        tj: "Ба номи Худое, ки бо зикри номи Ӯ ҳеҷ чиз, на дар замин ва на дар осмон, зарар намерасонад.",
+        n: 3
+      },
+      {
+        ar: "رَضِيتُ بِاللَّهِ رَبًّا، وَبِالْإِسْلَامِ دِينًا، وَبِمُحَمَّدٍ نَبِيًّا",
+        tr: "Радийту биллаҳи раббан, ва бил-исломи динан, ва би-Муҳаммадин набиян",
+        tj: "Розӣ шудам, ки Аллоҳ Парвардигорам, Ислом дини ман ва Муҳаммад (с) паёмбари ман бошад.",
+        n: 3
+      },
+      {
+        ar: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
+        tr: "Субҳаналлоҳи ва биҳамдиҳ",
+        tj: "Пок аст Аллоҳ ва Ӯро ситоиш мекунам.",
+        n: 100
+      }
+    ]
+  },
+  begoh: {
+    title: "Азкори бегоҳ",
+    sub: "Баъд аз намози аср/шом хонда мешавад",
+    items: [
+      {
+        ar: "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ",
+        tr: "Амсайна ва амсал-мулку лиллаҳ, вал-ҳамду лиллаҳ",
+        tj: "Мо ба шом расидем ва подшоҳии тамоми олам аз они Худост, ва ҳама гуна ситоиш низ ба Ӯ хос аст.",
+        n: 1
+      },
+      {
+        ar: "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ وَإِلَيْكَ الْمَصِيرُ",
+        tr: "Аллоҳумма бика амсайна, ва бика асбаҳна, ва бика наҳё, ва бика намуту ва илайкал-масир",
+        tj: "Худовандо, бо мадади Ту ба шом расидем ва бо мадади Ту ба субҳ мерасем, бо иродаи Ту зиндагӣ мекунем ва бо иродаи Ту мемирем, ва бозгашти мо низ сӯи Туст.",
+        n: 1
+      },
+      {
+        ar: "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ",
+        tr: "Аузу би-калиматиллаҳит-таммати мин шарри ма халақ",
+        tj: "Ба каломоти комили Аллоҳ аз бадии ҳар он чи офаридааст, паноҳ мебарам.",
+        n: 3
+      },
+      {
+        ar: "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ",
+        tr: "Аллоҳумма инни асъалукал-офията фид-дунё вал-охира",
+        tj: "Худовандо, аз Ту офият (саломатии ҷону тан)-ро дар дунё ва охират металабам.",
+        n: 1
+      },
+      {
+        ar: "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ",
+        tr: "Ла илаҳа иллаллоҳу ваҳдаҳу ла шарика лаҳ",
+        tj: "Ҳеҷ маъбуди барҳақ ғайр аз Аллоҳ нест, Ӯ якто аст ва шарике надорад.",
+        n: 10
+      }
+    ]
+  },
+  khob: {
+    title: "Пеш аз хоб",
+    sub: "Пеш аз хобидан хонда мешавад",
+    items: [
+      {
+        ar: "بِاسْمِكَ اللَّهُمَّ أَمُوتُ وَأَحْيَا",
+        tr: "Бисмика Аллоҳумма амуту ва аҳё",
+        tj: "Ба номи Ту, эй Худованд, мемирам (мехобам) ва зинда мешавам (бедор мешавам).",
+        n: 1
+      },
+      {
+        ar: "اللَّهُمَّ قِنِي عَذَابَكَ يَوْمَ تَبْعَثُ عِبَادَكَ",
+        tr: "Аллоҳумма қини азабака явма табъасу ибадак",
+        tj: "Худовандо, маро аз азоби Худ дар рӯзе, ки бандагонатро бармеангезӣ, эмин дор.",
+        n: 3
+      },
+      {
+        ar: "سُبْحَانَ اللَّهِ (٣٣) وَالْحَمْدُ لِلَّهِ (٣٣) وَاللَّهُ أَكْبَرُ (٣٤)",
+        tr: "Субҳаналлоҳ (33), Ал-ҳамду лиллаҳ (33), Аллоҳу акбар (34)",
+        tj: "Тасбеҳи хоб: «Пок аст Аллоҳ» 33 бор, «Ҳама ситоиш аз они Аллоҳ» 33 бор, «Аллоҳ бузургтарин аст» 34 бор.",
+        n: 1
+      },
+      {
+        ar: "آيَةُ الْكُرْسِيِّ",
+        tr: "Оят-ул-курсӣ (сураи Бақара, ояти 255)",
+        tj: "Хондани Оят-ул-курсӣ пеш аз хоб ҳифзу нигаҳдорӣ мебахшад — то субҳ шайтон наздик намеояд.",
+        n: 1
+      }
+    ]
+  },
+  namoz: {
+    title: "Баъд аз намоз",
+    sub: "Баъд аз ҳар намози фарз хонда мешавад",
+    items: [
+      {
+        ar: "أَسْتَغْفِرُ اللَّهَ",
+        tr: "Астағфируллоҳ",
+        tj: "Аз Аллоҳ бахшоиш металабам.",
+        n: 3
+      },
+      {
+        ar: "اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ",
+        tr: "Аллоҳумма антас-салому ва минкас-салом",
+        tj: "Худовандо, Ту Салом (сарчашмаи амният) ҳастӣ ва аз Ту салом мерасад.",
+        n: 1
+      },
+      {
+        ar: "سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَاللَّهُ أَكْبَرُ",
+        tr: "Субҳаналлоҳ, вал-ҳамду лиллаҳ, валлоҳу акбар",
+        tj: "Пок аст Аллоҳ, ҳама ситоиш аз они Аллоҳ, Аллоҳ бузургтарин аст.",
+        n: 33
+      },
+      {
+        ar: "لَا إِلَٰهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ",
+        tr: "Ла илаҳа иллаллоҳу ваҳдаҳу ла шарика лаҳ, лаҳул-мулку ва лаҳул-ҳамд",
+        tj: "Ҳеҷ маъбуди барҳақ ғайр аз Аллоҳ нест, Ӯ якто аст, шарике надорад, подшоҳӣ ва ситоиш аз они Ӯст.",
+        n: 1
+      }
+    ]
+  }
+};
+
+/* ============ рендери карточкаҳо ============ */
+Object.keys(DATA).forEach(k => {
+  document.getElementById('cnt-'+k).textContent = DATA[k].items.length + " зикр";
+});
+
+let currentCat = null;
+function openDetail(cat){
+  currentCat = cat;
+  const d = DATA[cat];
+  document.getElementById('detailTitle').textContent = d.title;
+  document.getElementById('detailSub').textContent = d.sub;
+  const list = document.getElementById('zikrList');
+  list.innerHTML = '';
+  d.items.forEach((it, idx) => {
+    const card = document.createElement('div');
+    card.className = 'zikr-card';
+    card.id = 'zikr-'+cat+'-'+idx;
+    card.innerHTML = `
+      <div class="zikr-index"><span>№ ${idx+1}</span></div>
+      <div class="zikr-arabic">${it.ar}</div>
+      <div class="zikr-translit">${it.tr}</div>
+      <div class="zikr-tj">${it.tj}</div>
+      <div class="zikr-footer">
+        <div class="zikr-repeat">Такрор: <span id="left-${cat}-${idx}">${it.n}</span> / ${it.n}</div>
+        <button class="count-btn" onclick="tapZikr('${cat}',${idx},${it.n})">
+          Хондам <span class="count-num" id="done-${cat}-${idx}">0</span>
+        </button>
+      </div>`;
+    list.appendChild(card);
+  });
+  document.getElementById('detailView').classList.add('open');
+  if (tg) tg.HapticFeedback && tg.HapticFeedback.impactOccurred('light');
+}
+function closeDetail(){
+  document.getElementById('detailView').classList.remove('open');
+}
+document.querySelectorAll('.cat-card').forEach(c=>{
+  c.addEventListener('click', ()=> openDetail(c.dataset.cat));
+});
+
+const progress = {};
+function tapZikr(cat, idx, total){
+  const key = cat+'-'+idx;
+  progress[key] = (progress[key]||0) + 1;
+  if (progress[key] > total) progress[key] = total;
+  document.getElementById('done-'+key).textContent = progress[key];
+  document.getElementById('left-'+key).textContent = Math.max(total - progress[key], 0);
+  const card = document.getElementById('zikr-'+key);
+  if (progress[key] >= total){
+    card.classList.add('done');
+    if (tg) tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success');
+  } else {
+    if (tg) tg.HapticFeedback && tg.HapticFeedback.impactOccurred('medium');
+  }
+}
+
+/* ============ Тасбеҳ ============ */
+const DHIKRS = [
+  {ar:"سُبْحَانَ اللَّهِ", tj:"Субҳаналлоҳ", target:33},
+  {ar:"الْحَمْدُ لِلَّهِ", tj:"Ал-ҳамду лиллаҳ", target:33},
+  {ar:"اللَّهُ أَكْبَرُ", tj:"Аллоҳу акбар", target:34},
+  {ar:"لَا إِلَٰهَ إِلَّا اللَّهُ", tj:"Ла илаҳа иллаллоҳ", target:100},
+  {ar:"أَسْتَغْفِرُ اللَّهَ", tj:"Астағфируллоҳ", target:100}
+];
+let dhikrIdx = 0;
+let tasbihCount = 0;
+
+function renderDhikrChips(){
+  const wrap = document.getElementById('dhikrSelect');
+  wrap.innerHTML = '';
+  DHIKRS.forEach((d,i)=>{
+    const chip = document.createElement('button');
+    chip.className = 'dhikr-chip' + (i===dhikrIdx ? ' active' : '');
+    chip.textContent = d.tj;
+    chip.onclick = ()=>{ dhikrIdx = i; tasbihCount = 0; renderDhikrChips(); renderTasbih(); };
+    wrap.appendChild(chip);
+  });
+}
+function renderBeads(){
+  const target = DHIKRS[dhikrIdx].target;
+  const row = document.getElementById('beadsRow');
+  row.innerHTML = '';
+  for(let i=0;i<target;i++){
+    const b = document.createElement('div');
+    b.className = 'bead' + (i < (tasbihCount % target || (tasbihCount>0 && tasbihCount%target===0 ? target : 0)) ? ' lit' : '');
+    row.appendChild(b);
+  }
+}
+function renderTasbih(){
+  const d = DHIKRS[dhikrIdx];
+  document.getElementById('tasbihArabic').textContent = d.ar;
+  document.getElementById('tasbihNum').textContent = tasbihCount;
+  document.querySelector('.tasbih-target').textContent = "аз " + d.target + (tasbihCount>0 ? " • ҷамъ: " + tasbihCount : "");
+  renderBeads();
+}
+document.getElementById('tasbihCircle').addEventListener('click', ()=>{
+  tasbihCount++;
+  const target = DHIKRS[dhikrIdx].target;
+  if (tasbihCount % target === 0){
+    if (tg) tg.HapticFeedback && tg.HapticFeedback.notificationOccurred('success');
+  } else {
+    if (tg) tg.HapticFeedback && tg.HapticFeedback.impactOccurred('rigid');
+  }
+  renderTasbih();
+});
+function resetTasbih(){ tasbihCount = 0; renderTasbih(); }
+function undoTasbih(){ if (tasbihCount>0) tasbihCount--; renderTasbih(); }
+renderDhikrChips();
+renderTasbih();
+
+/* ============ Навигатсияи поён ============ */
+function showTab(tab){
+  const home = document.getElementById('homeView');
+  const prayerCard = document.querySelector('.prayer-card');
+  const sectionLabel = document.querySelector('.section-label');
+  const tasbih = document.getElementById('tasbihView');
+  document.getElementById('navHome').classList.toggle('active', tab==='home');
+  document.getElementById('navTasbih').classList.toggle('active', tab==='tasbih');
+  if (tab==='home'){
+    home.classList.remove('hidden'); prayerCard.classList.remove('hidden'); sectionLabel.classList.remove('hidden');
+    tasbih.classList.add('hidden');
+  } else {
+    home.classList.add('hidden'); prayerCard.classList.add('hidden'); sectionLabel.classList.add('hidden');
+    tasbih.classList.remove('hidden');
+  }
+}
+
+/* ============ Сана ва салом ============ */
+function updateGreeting(){
+  const now = new Date();
+  const h = now.getHours();
+  let greet = "Ассалому алайкум!";
+  if (h < 5) greet = "Шаби хуш!";
+  else if (h < 11) greet = "Субҳатон ба хайр!";
+  else if (h < 17) greet = "Рӯзатон ба хайр!";
+  else if (h < 21) greet = "Бегоҳатон ба хайр!";
+  else greet = "Шаби хуш!";
+  document.getElementById('greetText').textContent = greet;
+  const months = ["январ","феврал","март","апрел","май","июн","июл","август","сентябр","октябр","ноябр","декабр"];
+  const weekdays = ["якшанбе","душанбе","сешанбе","чоршанбе","панҷшанбе","ҷумъа","шанбе"];
+  document.getElementById('dateText').textContent =
+    weekdays[now.getDay()] + ", " + now.getDate() + " " + months[now.getMonth()] + " " + now.getFullYear();
+}
+updateGreeting();
+setInterval(updateGreeting, 60000);
+
+/* ============ Вақти намоз (Aladhan API) ============ */
+const PRAYER_LABELS = [
+  {key:"Fajr", name:"Бомдод"},
+  {key:"Dhuhr", name:"Пешин"},
+  {key:"Asr", name:"Аср"},
+  {key:"Maghrib", name:"Шом"},
+  {key:"Isha", name:"Хуфтан"}
+];
+async function loadPrayerTimes(city){
+  const status = document.getElementById('prayerStatus');
+  status.textContent = "Дар ҳоли боргирӣ...";
+  try{
+    const url = `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=Tajikistan&method=2`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const t = data.data.timings;
+    const grid = document.getElementById('prayerGrid');
+    grid.innerHTML = '';
+    const now = new Date();
+    const nowMin = now.getHours()*60 + now.getMinutes();
+    let nextIdx = -1, minDiff = 1e9;
+    PRAYER_LABELS.forEach((p,i)=>{
+      const timeStr = t[p.key].slice(0,5);
+      const [hh,mm] = timeStr.split(':').map(Number);
+      const mins = hh*60+mm;
+      let diff = mins - nowMin;
+      if (diff < 0) diff += 1440;
+      if (diff < minDiff){ minDiff = diff; nextIdx = i; }
+    });
+    PRAYER_LABELS.forEach((p,i)=>{
+      const div = document.createElement('div');
+      div.className = 'prayer-item' + (i===nextIdx ? ' active' : '');
+      div.innerHTML = `<div class="prayer-name">${p.name}</div><div class="prayer-time">${t[p.key].slice(0,5)}</div>`;
+      grid.appendChild(div);
+    });
+    const nextP = PRAYER_LABELS[nextIdx];
+    const hrs = Math.floor(minDiff/60), mins = minDiff%60;
+    status.textContent = `То намози «${nextP.name}» — ${hrs} соату ${mins} дақиқа монд`;
+  } catch(e){
+    status.textContent = "Хатои пайвастшавӣ ба интернет. Дубора кӯшиш кунед.";
+  }
+}
+const citySelect = document.getElementById('citySelect');
+citySelect.addEventListener('change', ()=> loadPrayerTimes(citySelect.value));
+loadPrayerTimes(citySelect.value);
+
+if (tg){
+  tg.setHeaderColor && tg.setHeaderColor('#0E2B26');
+  tg.setBackgroundColor && tg.setBackgroundColor('#0E2B26');
+}
+</script>
+</body>
+</html>
